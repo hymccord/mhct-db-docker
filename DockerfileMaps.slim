@@ -1,0 +1,11 @@
+FROM mysql:latest
+
+# needed for intialization
+ENV MYSQL_ROOT_PASSWORD=secret
+ENV MYSQL_USER=admin
+ENV MYSQL_PASSWORD=admin
+ENV MYSQL_DATABASE=mhmapspotter
+
+# Setup
+ADD ./config-file.cnf /etc/mysql/conf.d/
+RUN curl https://backups.mhct.win/weekly/mapspotter_weekly.sql.gz -o /docker-entrypoint-initdb.d/mapspotter_weekly.sql.gz

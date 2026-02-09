@@ -1,0 +1,10 @@
+services:
+  mhct-db:
+    image: tsitu/mhct-db-docker:latest-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.slim
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mhhunthelper:/var/lib/mysql

@@ -1,0 +1,90 @@
+name: "Build & Publish All Images"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 4'  # Every Thursday at 00:00 UTC
+
+jobs:
+  build_all:
+    name: Build All Images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: Dockerfile
+            tags: tsitu/mhct-db-docker:nightly,tsitu/mhct-db-docker:latest
+          - dockerfile: Dockerfile.slim
+            tags: tsitu/mhct-db-docker:latest-slim
+          - dockerfile: DockerfileConv
+            tags: tsitu/mhct-db-docker:converter
+          - dockerfile: DockerfileMaps
+            tags: tsitu/mhct-db-docker:mapspotter
+          - dockerfile: DockerfileConv.slim
+            tags: tsitu/mhct-db-docker:converter-slim
+          - dockerfile: DockerfileMaps.slim
+            tags: tsitu/mhct-db-docker:mapspotter-slim
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v5
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: tsitu/mhct-db-docker
+
+      - name: Aggressive cleanup
+        run: |
+          df -h
+          # Remove Java (JDKs)
+          sudo rm -rf /usr/lib/jvm
+
+          # Remove .NET SDKs
+          sudo rm -rf /usr/share/dotnet
+
+          # Remove Swift toolchain
+          sudo rm -rf /usr/share/swift
+
+          # Remove Haskell (GHC)
+          sudo rm -rf /usr/local/.ghcup
+
+          # Remove Julia
+          sudo rm -rf /usr/local/julia*
+
+          # Remove Android SDKs
+          sudo rm -rf /usr/local/lib/android
+
+          # Remove Chromium (optional if not using for browser tests)
+          sudo rm -rf /usr/local/share/chromium
+
+          # Remove Microsoft/Edge and Google Chrome builds
+          sudo rm -rf /opt/microsoft /opt/google
+
+          # Remove Azure CLI
+          sudo rm -rf /opt/az
+
+          # Remove PowerShell
+          sudo rm -rf /usr/local/share/powershell
+
+          # Remove CodeQL and other toolcaches
+          sudo rm -rf /opt/hostedtoolcache
+
+          sudo docker system prune -af || true
+          sudo docker builder prune -af || true
+          df -h
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ matrix.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

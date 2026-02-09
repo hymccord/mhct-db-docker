@@ -3,8 +3,37 @@
 innodb_buffer_pool_size=4G
 innodb_log_buffer_size=256M
 
-# Performance settings
+# Redo log settings - increase capacity to avoid the warnings
+innodb_redo_log_capacity=2G
+
+# Speed up initialization by relaxing durability guarantees
+# 0 = write to log buffer every second, flush to disk every second (fastest)
+innodb_flush_log_at_trx_commit=0
+innodb_doublewrite=0
+sync_binlog=0
+
+# I/O performance tuning
 innodb_read_io_threads=64
 innodb_write_io_threads=64
 innodb_io_capacity=5000
+innodb_io_capacity_max=10000
+innodb_flush_method=O_DIRECT
+innodb_flush_neighbors=0
+innodb_file_per_table=1
+
+# Disable unnecessary features during initialization
 innodb_thread_concurrency=0
+innodb_stats_on_metadata=0
+performance_schema=OFF
+
+# Binary logging disabled for initialization speed
+skip_log_bin=1
+disable_log_bin
+
+# Bulk insert and query optimization
+max_allowed_packet=512M
+net_buffer_length=1M
+bulk_insert_buffer_size=256M
+sort_buffer_size=32M
+join_buffer_size=32M
+read_buffer_size=32M

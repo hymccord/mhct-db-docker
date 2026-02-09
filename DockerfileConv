@@ -1,4 +1,4 @@
-FROM mysql:8.0-debian as builder
+FROM mysql:latest AS builder
 
 # That file does the DB initialization but also runs mysql daemon, by removing the last line it will only init
 RUN ["sed", "-i", "s/exec \"$@\"/echo \"not running $@\"/", "/usr/local/bin/docker-entrypoint.sh"]
@@ -8,10 +8,6 @@ ENV MYSQL_ROOT_PASSWORD=secret
 ENV MYSQL_USER=admin
 ENV MYSQL_PASSWORD=admin
 ENV MYSQL_DATABASE=mhconverter
-
-# Setup
-RUN apt-get update && apt-get install -y curl
-ADD ./_preload.sh /docker-entrypoint-initdb.d/
 
 # COPY db files to /docker-entrypoint-initdb.d/
 RUN echo "[ DB Last Updated ]" && curl https://backups.mhct.win/weekly/last_updated.txt
@@ -23,6 +19,6 @@ RUN curl https://backups.mhct.win/weekly/converter_weekly.sql.gz -o /docker-entr
 #       it has been declared, those changes will be discarded.
 RUN ["/usr/local/bin/docker-entrypoint.sh", "mysqld", "--datadir", "/initialized-db"]
 
-FROM mysql:8.0-debian
+FROM mysql:latest
 
 COPY --from=builder /initialized-db /var/lib/mysql

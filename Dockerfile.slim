@@ -1,0 +1,9 @@
+FROM mysql:latest
+
+ENV MYSQL_ROOT_PASSWORD=secret
+ENV MYSQL_USER=admin
+ENV MYSQL_PASSWORD=admin
+ENV MYSQL_DATABASE=mhhunthelper
+
+ADD ./config-file.cnf /etc/mysql/conf.d/
+RUN curl https://backups.mhct.win/nightly/hunthelper_nightly.sql.gz -o /docker-entrypoint-initdb.d/hunthelper_nightly.sql.gz
